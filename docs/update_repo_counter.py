@@ -6,8 +6,8 @@ Updates https://github.com/SNTL84/sntl84-repo-counter with
 accurate public + private repo counts using GitHub API.
 
 Usage:
-export GITHUB_TOKEN=ghp_your_token_here
-python3 update_counter.py
+  export GITHUB_TOKEN=ghp_your_token_here
+  python3 update_repo_counter.py
 
 Built by SNTL84 · Milan · desidevloper.com
 """
@@ -46,7 +46,6 @@ def github_put(path, data):
         return json.loads(resp.read())
 
 def get_all_repos():
-    """Fetch ALL repos (public + private) with pagination."""
     repos = []
     page = 1
     while True:
@@ -61,10 +60,10 @@ def get_all_repos():
 
 def main():
     if not TOKEN:
-        print("Set GITHUB_TOKEN environment variable first.")
+        print("❌ Set GITHUB_TOKEN environment variable first.")
         return
 
-    print(f"Fetching all repos for @{GITHUB_USER}...")
+    print(f"🔍 Fetching all repos for @{GITHUB_USER}...")
     repos = get_all_repos()
 
     public_repos = [r for r in repos if not r["private"]]
@@ -72,11 +71,11 @@ def main():
     total = len(repos)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    print(f"Public: {len(public_repos)}")
-    print(f"Private: {len(private_repos)}")
-    print(f"Total: {total}")
+    print(f"✅ Public: {len(public_repos)}")
+    print(f"🔒 Private: {len(private_repos)}")
+    print(f"📦 Total: {total}")
 
-    readme_content = f"""# SNTL84 Repo Counter
+    readme_content = f"""# 📊 SNTL84 Repo Counter
 
 > Auto-updated · Last sync: **{now}**
 
@@ -84,23 +83,12 @@ def main():
 
 | Type | Count |
 |------|-------|
-| Public Repos | **{len(public_repos)}** |
-| Private Repos | **{len(private_repos)}** |
-| **Total** | **{total}** |
+| 🌐 Public Repos | **{len(public_repos)}** |
+| 🔒 Private Repos | **{len(private_repos)}** |
+| 📦 **Total** | **{total}** |
 
 ---
-
-### Public Repositories
-
-| # | Repo | Description |
-|---|------|-------------|
-""" + "".join(
-        f"| {i+1} | [{r['name']}]({r['html_url']}) | {r.get('description') or '-'} |\n"
-        for i, r in enumerate(sorted(public_repos, key=lambda x: x['updated_at'], reverse=True))
-    ) + """
----
-
-Powered by SNTL84 · Milan · AI Workflow Developer · Surat
+⚡ Powered by SNTL84 · Milan · AI Workflow Developer · Surat
 """
 
     try:
@@ -110,21 +98,15 @@ Powered by SNTL84 · Milan · AI Workflow Developer · Surat
         sha = None
 
     payload = {
-        "message": f"Auto-update: {len(public_repos)} public, {len(private_repos)} private, {total} total [{now}]",
+        "message": f"📊 Auto-update: {len(public_repos)} public, {total} total [{now}]",
         "content": base64.b64encode(readme_content.encode()).decode(),
-        "committer": {
-            "name": "SNTL84 Bot",
-            "email": "sntl84@desidevloper.com"
-        }
+        "committer": {"name": "SNTL84 Bot", "email": "sntl84@desidevloper.com"}
     }
     if sha:
         payload["sha"] = sha
 
-    result = github_put(
-        f"/repos/{GITHUB_USER}/{REPO_TARGET}/contents/README.md",
-        payload
-    )
-    print(f"Updated: {result['content']['html_url']}")
+    result = github_put(f"/repos/{GITHUB_USER}/{REPO_TARGET}/contents/README.md", payload)
+    print(f"✅ sntl84-repo-counter updated! Commit: {result['commit']['sha'][:8]}")
 
 if __name__ == "__main__":
     main()
